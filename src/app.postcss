@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+.wrap {
+	@apply md:max-w-[90%] mx-auto py-8 w-full;
+}
+
+.error-input {
+	@apply text-error-500 font-medium;
+}
+
+.separator {
+	@apply w-full h-[1px] bg-secondary-500/50;
+}
+
+.input-custom {
+	@apply !bg-transparent !border-none w-full focus:ring-0;
+}
