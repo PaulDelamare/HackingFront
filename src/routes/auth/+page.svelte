@@ -6,7 +6,6 @@
 	export let data: PageData;
 
 	let products = data.products;
-	console.log(products);
 	const user = data.user;
 
 	const { errors, enhance, message } = superForm(data.form, {
