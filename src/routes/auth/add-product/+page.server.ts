@@ -9,8 +9,8 @@ import ProductApi from '$lib/Api/product.server';
 
 
 const newProductSchema = z.object({
-    title: z.string(),
-    description: z.string()
+    title: z.string().max(50, 'Le titre doit contenir au moins 50 caractères'),
+    description: z.string().max(100, 'La description doit contenir au moins 100 caractères')
 })
 
 export const load = (async (event) => {

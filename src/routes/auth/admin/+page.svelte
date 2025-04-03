@@ -1,16 +1,17 @@
 <script lang="ts">
 	import Td from '$lib/Component/form/Td.svelte';
 	import {
-		getModalStore,
 		getToastStore,
 		Paginator,
-		type PaginationSettings
+		type PaginationSettings,
+		type ToastSettings
 	} from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
+	import { superForm } from 'sveltekit-superforms/client';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
-	const modalStore = getModalStore();
 	const toastStore = getToastStore();
 
 	let users = data.users;
@@ -32,12 +33,30 @@
 		paginationSettings.page * paginationSettings.limit,
 		paginationSettings.page * paginationSettings.limit + paginationSettings.limit
 	);
+
+	const { message } = superForm(data.form, {
+		taintedMessage:
+			'Êtes vous sur de vouloir quitter cette page ? Les données ne seront pas sauvegardées'
+	});
+
+	$: if ($message) {
+		if ($message.success) {
+			location.reload();
+
+			let t: ToastSettings = {
+				message: 'Utilisateur supprimé avec succès',
+				background: 'bg-success-500'
+			};
+
+			toastStore.trigger(t);
+		}
+	}
 </script>
 
 <section class="p-4">
 	<div class="wrap flex flex-col gap-4">
 		<div class="w-full flex flex-col gap-4">
-			<h2 class="text-center leading-tight uppercase">Utilisateurs</h2>
+			<h2 class="text-center leading-tight uppercase text-3xl">Utilisateurs</h2>
 			<div class="search-bar w-full max-w-[300px] mx-auto">
 				<input
 					class="input"
@@ -49,9 +68,6 @@
 					}}
 				/>
 			</div>
-			<div class=" flex justify-end">
-				<a class="btn variant-ghost-primary text-primary-500" href="/auth/users/add">+ Ajouter</a>
-			</div>
 			<div class="overflow-x-auto">
 				<table
 					class="table w-full border-collapse card !ring-0 max-[850px]:overflow-hidden max-[850px]:!bg-transparent"
@@ -61,6 +77,7 @@
 					>
 						<tr>
 							<th class="table-th py-[1rem] px-[0.75rem] text-center">Email</th>
+							<th class="table-th py-[1rem] px-[0.75rem] text-center">Role</th>
 							{#if userMe.role.role_name === 'admin'}
 								<th class="table-th py-[1rem] px-[0.75rem] text-center">Supprimer</th>
 							{/if}
@@ -77,35 +94,23 @@
 								<Td dataLabel="Email">
 									{user.email}
 								</Td>
-								{#if userMe === 'adminr' && user.role.role_name !== 'admin'}
+								<Td dataLabel="Role">
+									{user.role.role_name}
+								</Td>
+								{#if userMe.role.role_name === 'admin' && user.role.role_name !== 'admin'}
 									<td
 										data-label="Supprimer"
 										class="text-center max-[850px]:font-semibold max-[850px]:border-b-0 max-[850px]:before:content-[attr(data-label)] max-[850px]:before:float-left max-[850px]:before:font-bold max-[850px]:before:uppercase max-[850px]:before:text-[.8rem] p-[0.75rem] border-0 max-[850px]:border-b-[#ddd] max-[850px]:block max-[850px]:text-[1rem] max-[850px]:text-right"
 									>
-										<!-- <form
-											action="?/deleteUser"
-											on:submit={async (event) => {
-												await confirmDelete(
-													event,
-													modalStore,
-													toastStore,
-													user.name,
-													'Voulez vous vraiment supprimer cet utilisateur ?'
-												);
-
-												invalidateAll().then(() => {
-													paginationSettings.page = 0;
-													users = data.users;
-												});
-											}}
-											method="POST"
-										>
+										<form action="?/deleteUser" method="POST">
 											<input name="id" type="hidden" value={user.id} />
 											<button type="submit" class="btn variant-filled-error font-semibold"
 												>Supprimer</button
 											>
-										</form> -->
+										</form>
 									</td>
+								{:else}
+									<td> </td>
 								{/if}
 							</tr>
 						{/each}
@@ -113,7 +118,7 @@
 					<tfoot class="">
 						<tr>
 							<td class="text-center max-[850px]:hidden">Total</td>
-							<td class="p-[0.75rem] border-0 max-[850px]:hidden" />
+							<td class="text-center max-[850px]:hidden"></td>
 							<td
 								class="text-center footer-left p-[0.75rem] border-0 pl-[1rem] max-[850px]:flex max-[850px]:justify-between max-[850px]:rounded-[10px]"
 								><p class="max-[850px]:inline hidden">Total</p>
@@ -121,8 +126,6 @@
 									>{paginationSettings.size} Utilisateurs</span
 								></td
 							>
-							<td class="p-[0.75rem] border-0 max-[850px]:hidden" />
-							<td class="p-[0.75rem] border-0 max-[850px]:hidden" />
 						</tr>
 					</tfoot>
 				</table>
